@@ -106,9 +106,9 @@ setGeneric("fit_robust", function(object, ...) standardGeneric("fit_robust"))
 setGeneric("select_moderators", function(object, ...) standardGeneric("select_moderators"))
 setGeneric("quantify_uncertainty", function(object, ...) standardGeneric("quantify_uncertainty"))
 setGeneric("assess_sensitivity", function(object, ...) standardGeneric("assess_sensitivity"))
-setGeneric("diagnose", function(object, ...) standardGeneric("diagnose"))
-setGeneric("visualize", function(object, ...) standardGeneric("visualize"))
-setGeneric("transport", function(object, ...) standardGeneric("transport"))
+# Note: diagnose(), visualize(), and transport() are regular functions
+# that handle dispatch internally via methods::is() checks.
+# report() is reserved for future implementation.
 setGeneric("report", function(object, ...) standardGeneric("report"))
 
 # Enhanced show method (ASCII-safe for Windows cp1252)

@@ -2,8 +2,29 @@
 #' @title Complete Sensitivity Analysis Suite
 #' @description Comprehensive sensitivity and influence diagnostics
 
+#' Comprehensive Sensitivity Analysis Suite
+#'
+#' Runs one or more sensitivity analyses on a fitted metaverse model,
+#' including publication bias tests, influence diagnostics, fragility
+#' analysis, E-values, outlier detection, and cumulative meta-analysis.
+#'
+#' @param model A metaverse S4 object with fitted robust results.
+#' @param analyses Character vector of analyses to run. Use "all" for the
+#'   complete suite. Options: "publication_bias", "influence", "fragility",
+#'   "evalues", "outliers", "cumulative".
+#' @param control Named list of analysis-specific control parameters.
+#' @param verbose Logical; print progress.
+#' @return An object of class \code{sensitivity_result} containing named
+#'   results for each requested analysis.
+#' @examples
+#' data <- simulate_meta_data(k = 20, seed = 42)
+#' rob <- meta_robust(data$yi, data$vi, method = "MM")
+#' model <- new("metaverse", data = data,
+#'              model = list(method = "MM"),
+#'              robust = unclass(rob))
+#' assess_sensitivity(model, analyses = "outliers")
 #' @export
-assess_sensitivity <- function(model, 
+assess_sensitivity <- function(model,
                              analyses = c("publication_bias", "influence", 
                                         "fragility", "evalues", "outliers"),
                              control = list(),

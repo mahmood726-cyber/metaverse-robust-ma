@@ -4,8 +4,33 @@
 #' @import glmnet
 #' @importFrom stats rnorm rbinom pnorm runif rgamma dnorm
 
+#' Variable Selection for Meta-Regression Moderators
+#'
+#' Selects important moderators from a candidate set using one of seven
+#' methods, each providing formal False Discovery Rate control.
+#'
+#' @param X Numeric matrix of moderator values (k rows, p columns).
+#' @param y Numeric vector of effect sizes (length k).
+#' @param v Numeric vector of sampling variances (length k).
+#' @param method Character: selection method. One of "knockoff", "spike_slab",
+#'   "lasso", "elastic_net", "scad", "mcp", "evalues".
+#' @param fdr Target FDR level for knockoff filter (default 0.1).
+#' @param alpha Significance level for penalized methods (default 0.05).
+#' @param control Named list of method-specific control parameters.
+#' @param verbose Logical; print progress.
+#' @return An object of class \code{selection_result}, a list containing:
+#'   \item{selected}{Integer indices of selected variables}
+#'   \item{variable_names}{Names of selected variables (if X has colnames)}
+#'   \item{method}{The method used}
+#'   and method-specific fields (importance, pip, coefficients, etc.).
+#' @examples
+#' set.seed(42)
+#' X <- matrix(rnorm(200), 40, 5, dimnames = list(NULL, paste0("X", 1:5)))
+#' y <- 0.3 + 0.5 * X[, 1] + rnorm(40, 0, 0.2)
+#' v <- rep(0.04, 40)
+#' select_moderators(X, y, v, method = "lasso", control = list(n_bootstrap = 20))
 #' @export
-select_moderators <- function(X, y, v, 
+select_moderators <- function(X, y, v,
                             method = c("knockoff", "spike_slab", "lasso", 
                                      "elastic_net", "scad", "mcp", "evalues"),
                             fdr = 0.1,

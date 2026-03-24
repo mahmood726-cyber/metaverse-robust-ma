@@ -4,6 +4,26 @@
 
 # Note: simulate_meta_data is already complete in the file, keeping it as is
 
+#' Convert Between Effect Size Types
+#'
+#' Converts effect sizes and their sampling variances between common
+#' meta-analytic scales using standard formulae.
+#'
+#' @param x Numeric vector of effect sizes in the \code{from} scale.
+#' @param vi Optional numeric vector of sampling variances.
+#' @param from Character: source effect size type.
+#' @param to Character: target effect size type.
+#' @param n1 Optional: sample size of group 1 (used in some conversions).
+#' @param n2 Optional: sample size of group 2.
+#' @param df Optional: degrees of freedom (for SMD to Hedges g).
+#' @param cor Optional: correlation (unused, reserved).
+#' @return A list with elements \code{es} (converted effect size) and
+#'   \code{var} (converted variance, if \code{vi} was provided).
+#'
+#' Supported types: "SMD", "MD", "OR", "logOR", "RR", "logRR", "RD",
+#' "r", "z", "d", "g", "eta2", "f", "f2".
+#' @examples
+#' convert_effect_sizes(0.5, vi = 0.04, from = "SMD", to = "logOR")
 #' @export
 convert_effect_sizes <- function(x, vi = NULL, from, to,
                                  n1 = NULL, n2 = NULL,
@@ -229,6 +249,18 @@ convert_effect_sizes <- function(x, vi = NULL, from, to,
   result
 }
 
+#' Aggregate Dependent Effect Sizes Within Clusters
+#'
+#' Combines multiple effect sizes from the same study or cluster into
+#' a single composite effect size, accounting for within-cluster correlation.
+#'
+#' @param data Data frame containing \code{yi} and \code{vi} columns.
+#' @param cluster Character: name of the clustering variable in \code{data}.
+#' @param method Character: aggregation method ("simple", "weighted", "robust",
+#'   "multilevel", "borenstein").
+#' @param weights Optional numeric vector of weights.
+#' @param rho Assumed within-cluster correlation (default 0.5).
+#' @return A data frame with aggregated yi, vi, ni, and k per cluster.
 #' @export
 aggregate_effects <- function(data, cluster, method = "robust",
                               weights = NULL, rho = 0.5) {
@@ -364,6 +396,23 @@ aggregate_effects <- function(data, cluster, method = "robust",
   agg_data
 }
 
+#' Power Analysis for Meta-Analysis
+#'
+#' Computes statistical power for detecting a true effect in a meta-analysis,
+#' or finds the required number of studies to achieve a target power level.
+#'
+#' @param k Number of studies. If NULL, computes the required k for target power.
+#' @param theta True effect size.
+#' @param tau2 Between-study variance.
+#' @param alpha Significance level (default 0.05).
+#' @param power Target power when finding required k (default 0.80).
+#' @param n_min Minimum within-study sample size (default 20).
+#' @param n_max Maximum within-study sample size (default 200).
+#' @param effect_type Character: "fixed" or "random" effects model.
+#' @param test Character: "two.sided", "greater", or "less".
+#' @return An object of class \code{power_analysis} with power, k, and related fields.
+#' @examples
+#' power_analysis(k = 30, theta = 0.3, tau2 = 0.05)
 #' @export
 power_analysis <- function(k = NULL, theta = 0.3, tau2 = 0.05,
                            alpha = 0.05, power = 0.80,

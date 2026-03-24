@@ -6,7 +6,17 @@
 #' @importFrom grDevices rgb
 #' @importFrom stats pnorm qnorm
 
-#' Main visualization dispatcher
+#' Visualize Meta-Analysis Results
+#'
+#' Dispatcher function that creates publication-quality plots for meta-analysis
+#' results, including forest, funnel, diagnostic, influence, cumulative,
+#' radial, L'Abbe, and Baujat plots.
+#'
+#' @param model A metaverse S4 object or meta_robust list with \code{$data}.
+#' @param type Character: plot type. One of "forest", "funnel", "diagnostic",
+#'   "influence", "cumulative", "radial", "labbe", "baujat".
+#' @param ... Additional arguments passed to the specific plot function.
+#' @return A ggplot2 object (for most types) or NULL (for base-R diagnostic panel).
 #' @export
 visualize <- function(model,
                      type = c("forest", "funnel", "diagnostic", "influence",

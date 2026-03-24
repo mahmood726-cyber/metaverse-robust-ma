@@ -1,6 +1,24 @@
 
+#' Simulate Meta-Analysis Data
+#'
+#' Generates synthetic meta-analysis data with configurable true effect,
+#' heterogeneity, contamination, study size distribution, and moderators.
+#'
+#' @param k Number of studies (default 50).
+#' @param theta True overall effect size (default 0.5).
+#' @param tau2 True between-study variance (default 0.1).
+#' @param contamination Proportion of outlier studies (default 0, range 0-1).
+#' @param study_size_dist Distribution of study sizes: "uniform", "exponential", or "bimodal".
+#' @param effect_size_type Type of effect size: "SMD", "OR", "RR", "MD".
+#' @param moderators Either a positive integer (number of moderators to generate)
+#'   or a matrix of moderator values with k rows.
+#' @param seed Optional random seed for reproducibility.
+#' @return A data frame with columns study, yi, vi, ni, sei, and any moderator columns.
+#' @examples
+#' data <- simulate_meta_data(k = 30, theta = 0.5, tau2 = 0.1, seed = 42)
+#' head(data)
 #' @export
-simulate_meta_data <- function(k = 50, 
+simulate_meta_data <- function(k = 50,
                               theta = 0.5, 
                               tau2 = 0.1,
                               contamination = 0,

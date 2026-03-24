@@ -5,8 +5,37 @@
 #' @import MASS
 #' @importFrom stats pnorm qnorm dnorm optim pchisq median mad quantile
 
+#' Robust Meta-Analysis Estimation
+#'
+#' Fits a robust random-effects meta-analysis model using M-, MM-, S-,
+#' tau, ML, or REML estimators. Supports contamination models and
+#' optional moderators for meta-regression.
+#'
+#' @param yi Numeric vector of effect sizes, or unquoted column name if data is provided.
+#' @param vi Numeric vector of sampling variances, or unquoted column name.
+#' @param data Optional data frame containing yi and vi.
+#' @param mods Optional moderator matrix or formula for meta-regression.
+#' @param method Character: estimation method, one of "MM", "M", "tau", "S", "ML", "REML".
+#' @param contamination Character: contamination model, one of "none", "t-mixture", "slash", "box-cox".
+#' @param weights Optional numeric vector of custom study weights.
+#' @param control Named list of control parameters (k, tol, maxiter, efficiency, df, lambda, init).
+#' @param verbose Logical; if TRUE, print progress information.
+#' @return An object of class \code{meta_robust}, a list containing:
+#'   \item{estimate}{Pooled effect size estimate}
+#'   \item{se}{Standard error of the estimate}
+#'   \item{ci.lower, ci.upper}{95\% confidence interval bounds}
+#'   \item{p_value}{Two-sided p-value for the null hypothesis of no effect}
+#'   \item{weights}{Robust weights assigned to each study}
+#'   \item{tau2, I2, H2}{Heterogeneity statistics (for tau/ML/REML methods)}
+#'   \item{converged}{Logical; whether the algorithm converged}
+#'   \item{method}{The estimation method used}
+#'   \item{contamination}{The contamination model applied}
+#' @examples
+#' data <- simulate_meta_data(k = 30, theta = 0.5, tau2 = 0.1, seed = 42)
+#' result <- meta_robust(data$yi, data$vi, method = "MM")
+#' print(result)
 #' @export
-meta_robust <- function(yi, vi, data = NULL, 
+meta_robust <- function(yi, vi, data = NULL,
                        mods = NULL,
                        method = c("MM", "M", "tau", "S", "ML", "REML"),
                        contamination = c("none", "t-mixture", "slash", "box-cox"),
@@ -85,9 +114,17 @@ meta_robust <- function(yi, vi, data = NULL,
 }
 
 #' M-estimator with various psi functions
-#' @export
-
-#' M-estimator with various psi functions
+#'
+#' Iteratively reweighted least squares M-estimator using Tukey's biweight
+#' psi function for robust meta-analysis.
+#'
+#' @param yi Numeric vector of effect sizes.
+#' @param vi Numeric vector of sampling variances.
+#' @param wi Numeric vector of weights (typically 1/vi).
+#' @param mods Optional matrix of moderators.
+#' @param control List of control parameters (k, tol, maxiter).
+#' @param verbose Logical; print progress information.
+#' @return A list with estimate, se, vcov, fitted, residuals, weights, iterations, converged.
 #' @export
 m_estimator <- function(yi, vi, wi, mods = NULL, control = list(), verbose = FALSE) {
   
@@ -163,6 +200,19 @@ m_estimator <- function(yi, vi, wi, mods = NULL, control = list(), verbose = FAL
     converged = (iter < control$maxiter)
   )
 }
+#' MM-estimator combining S and M estimation
+#'
+#' Two-step estimator: S-estimation for high breakdown point, then
+#' M-estimation for efficiency. Provides robust meta-analysis estimates.
+#'
+#' @param yi Numeric vector of effect sizes.
+#' @param vi Numeric vector of sampling variances.
+#' @param wi Numeric vector of weights.
+#' @param mods Optional matrix of moderators.
+#' @param control List of control parameters.
+#' @param verbose Logical; print progress information.
+#' @return A list with estimate, se, vcov, s_estimate, s_scale, iterations, converged.
+#' @export
 mm_estimator <- function(yi, vi, wi, mods = NULL, control = list(), verbose = FALSE) {
   
   if(verbose) cat("Step 1: Computing S-estimate...\n")
@@ -193,7 +243,19 @@ mm_estimator <- function(yi, vi, wi, mods = NULL, control = list(), verbose = FA
   )
 }
 
-#' S-estimator for high breakdown point
+#' S-estimator for High Breakdown Point
+#'
+#' Computes an S-estimate that achieves 50\% breakdown point,
+#' meaning the estimate remains bounded even when up to half the
+#' studies are arbitrarily contaminated.
+#'
+#' @param yi Numeric vector of effect sizes.
+#' @param vi Numeric vector of sampling variances.
+#' @param wi Numeric vector of weights.
+#' @param mods Optional matrix of moderators.
+#' @param control List of control parameters.
+#' @param verbose Logical; print progress information.
+#' @return A list with estimate, scale, iterations, converged.
 #' @export
 s_estimator <- function(yi, vi, wi, mods = NULL, control = list(), verbose = FALSE) {
   
@@ -236,7 +298,21 @@ s_estimator <- function(yi, vi, wi, mods = NULL, control = list(), verbose = FAL
   )
 }
 
-#' Tau-squared estimator with robust methods
+#' Tau-Squared Estimator with Multiple Methods
+#'
+#' Computes the between-study variance (tau-squared) using multiple methods
+#' (DerSimonian-Laird, Paule-Mandel, REML, Empirical Bayes) based on
+#' robustly centered residuals.
+#'
+#' @param yi Numeric vector of effect sizes.
+#' @param vi Numeric vector of sampling variances.
+#' @param wi Numeric vector of weights.
+#' @param mods Optional matrix of moderators.
+#' @param control List of control parameters. Use \code{tau_method} to select
+#'   among "DL", "PM", "REML", "EB".
+#' @param verbose Logical; print progress information.
+#' @return A list with estimate, se, tau2, tau, tau2_methods, Q, I2, H2,
+#'   prediction_interval.
 #' @export
 tau_estimator <- function(yi, vi, wi, mods = NULL, control = list(), verbose = FALSE) {
   
@@ -300,7 +376,20 @@ tau_estimator <- function(yi, vi, wi, mods = NULL, control = list(), verbose = F
   )
 }
 
-#' Contamination models
+#' Apply Contamination Model to Meta-Analysis Results
+#'
+#' Post-hoc application of a heavy-tailed contamination model to identify
+#' and down-weight outlier studies.
+#'
+#' @param result A list containing initial meta-analysis results.
+#' @param yi Numeric vector of effect sizes.
+#' @param vi Numeric vector of sampling variances.
+#' @param mods Optional moderator matrix.
+#' @param type Character: one of "t-mixture", "slash", "box-cox".
+#' @param control List of control parameters (df for t-mixture, lambda for box-cox).
+#' @param verbose Logical; print progress.
+#' @return The input result list augmented with contamination_fit, outlier_prob,
+#'   and transformed_data.
 #' @export
 apply_contamination_model <- function(result, yi, vi, mods = NULL,
                                      type = "t-mixture", 

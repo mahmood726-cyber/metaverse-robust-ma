@@ -32,6 +32,13 @@ export(causal_forest_meta)
 export(transport)
 export(diagnose)
 
+# Exported estimators (building blocks)
+export(m_estimator)
+export(mm_estimator)
+export(s_estimator)
+export(tau_estimator)
+export(apply_contamination_model)
+
 # Exported helpers
 export(meta_multilevel)
 export(fit_robust_multilevel)

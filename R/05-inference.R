@@ -2,8 +2,23 @@
 #' @title Complete Inference Methods
 #' @description Selective inference, conformal prediction, and advanced bootstrap
 
+#' Advanced Uncertainty Quantification for Meta-Analysis
+#'
+#' Provides uncertainty estimates beyond standard confidence intervals,
+#' including bootstrap, conformal prediction, selective inference,
+#' permutation tests, and Bayesian posterior sampling.
+#'
+#' @param model A metaverse S4 object with fitted robust results.
+#' @param method Character: inference method. One of "bootstrap", "conformal",
+#'   "selective", "permutation", "bayesian".
+#' @param conf.level Confidence level for intervals (default 0.95).
+#' @param R Number of bootstrap or permutation replicates (default 1000).
+#' @param control Named list of method-specific parameters.
+#' @param verbose Logical; print progress.
+#' @return An object of class \code{inference_result} with method-specific
+#'   fields (intervals, p_value, posterior samples, etc.).
 #' @export
-quantify_uncertainty <- function(model, 
+quantify_uncertainty <- function(model,
                                method = c("bootstrap", "conformal", "selective", 
                                         "permutation", "bayesian"),
                                conf.level = 0.95,
