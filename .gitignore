@@ -1,0 +1,12 @@
+.Rhistory
+.Rdata
+.RData
+.Rproj.user/
+*.Rcheck/
+*.tar.gz
+man/*.Rd
+inst/doc/
+.DS_Store
+Thumbs.db
+.vscode/
+*.swp

@@ -1,0 +1,87 @@
+---
+title: "metaverse: Robust Evidence Synthesis and Variable Selection"
+author: "Mahmood Ahmad"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Metaverse Tutorial}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+# library(metaverse)
+```
+
+## Introduction
+
+The `metaverse` package is designed to tackle the most challenging problems in modern meta-analysis: severe data contamination (outliers) and high-dimensional variable selection. 
+
+In this tutorial, we will use a simulated dataset (`metaverse_eval_data`) containing 60 studies, 10% of which are extreme outliers. The dataset also includes 10 potential covariates (moderators), but only two (`X1` and `X2`) represent true underlying effects.
+
+```{r load_data}
+# Load the pre-computed evaluation dataset
+data(metaverse_eval_data)
+```
+
+## 1. The Danger of Standard Meta-Analysis
+
+A standard random-effects model is highly sensitive to outliers. 
+
+```{r standard_ma, eval=FALSE}
+# Standard, non-robust Random Effects Model
+standard_res <- meta_standard(metaverse_eval_data$yi, metaverse_eval_data$vi)
+print(standard_res$estimate)
+# The standard estimate is severely biased by the 6 extreme outliers.
+```
+
+## 2. Robust Estimation with M-Estimators
+
+`metaverse` provides robust estimation techniques by default. Using an **MM-estimator** or a **Contamination model** allows the synthesis to down-weight extreme values automatically.
+
+```{r robust_ma, eval=FALSE}
+# Robust MM-Estimator
+robust_res <- meta_robust(
+  y = metaverse_eval_data$yi, 
+  v = metaverse_eval_data$vi, 
+  method = "MM"
+)
+
+cat("Standard Estimate: ", round(standard_res$estimate, 3), "
+")
+cat("Robust Estimate:   ", round(robust_res$estimate, 3), "
+")
+```
+
+The robust estimate successfully ignores the heavy tails of the distribution, recovering the true underlying baseline effect.
+
+## 3. Advanced Variable Selection: The Knockoff Filter
+
+In clinical research, we often test dozens of potential moderators (age, sex, dosage, latitude, etc.). Standard meta-regression suffers from high false-discovery rates (FDR) in this setting. 
+
+`metaverse` introduces the **Knockoff Filter** for meta-analysis, providing mathematical guarantees for FDR control.
+
+```{r knockoff_filter, eval=FALSE}
+# Isolate the covariates (X1 through X10)
+X_matrix <- as.matrix(metaverse_eval_data[, 5:14])
+
+# Run variable selection using the Knockoff Filter
+selection_res <- select_moderators(
+  X = X_matrix, 
+  y = metaverse_eval_data$yi, 
+  v = metaverse_eval_data$vi, 
+  method = "knockoff", 
+  fdr = 0.10
+)
+
+print(selection_res$selected_variables)
+# Output successfully isolates "X1" and "X2" while dropping the noise variables.
+```
+
+## Conclusion
+
+By integrating cutting-edge statistical methodologies like Contamination Models and Knockoff Filters, `metaverse` ensures that your evidence synthesis remains valid even when data is messy and high-dimensional.

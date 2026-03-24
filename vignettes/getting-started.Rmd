@@ -1,0 +1,101 @@
+
+---
+title: "Getting Started with metaverse"
+author: "Mahmood Ahmad"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with metaverse}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+# Introduction
+
+The metaverse package provides state-of-the-art methods for robust meta-analysis.
+
+## Installation
+
+```{r eval=FALSE}
+# Install from GitHub
+devtools::install_github("mahmood726-cyber/metaverse")
+```
+
+## Basic Usage
+
+```{r}
+library(metaverse)
+
+# Simulate data
+set.seed(123)
+data <- simulate_meta_data(k = 30, theta = 0.5, tau2 = 0.1)
+
+# Robust meta-analysis
+result <- meta_robust(data$yi, data$vi, method = "MM")
+print(result)
+```
+
+## Advanced Features
+
+### Contamination Models
+
+Handle outliers with contamination models:
+
+```{r}
+# Add contamination
+data_contam <- simulate_meta_data(k = 30, contamination = 0.2)
+
+# Fit with t-mixture model
+result_contam <- meta_robust(data_contam$yi, data_contam$vi, 
+                           contamination = "t-mixture")
+```
+
+### Variable Selection
+
+Select important moderators:
+
+```{r}
+# Generate data with moderators
+data_mod <- simulate_meta_data(k = 50, moderators = 5)
+
+X <- as.matrix(data_mod[, grep("mod", names(data_mod))])
+
+# Knockoff filter
+selected <- select_moderators(X, data_mod$yi, data_mod$vi, 
+                             method = "knockoff", fdr = 0.1)
+print(selected)
+```
+
+## Visualization
+
+Create publication-quality plots:
+
+```{r eval=FALSE}
+# Forest plot
+forest_plot(result)
+
+# Funnel plot
+funnel_plot(result)
+```
+
+## Sensitivity Analysis
+
+Comprehensive sensitivity analyses:
+
+```{r eval=FALSE}
+# Create model object
+model <- new("metaverse", data = data, robust = result)
+
+# Run sensitivity analyses
+sensitivity <- assess_sensitivity(model, analyses = "all")
+```
+

@@ -1,0 +1,14 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^LICENSE\.md$
+^README\.Rmd$
+^manuscript_PLOS_ONE\.md$
+^data-raw$
+^\.github$
+^codecov\.yml$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^CLAUDE\.md$
+^\.claude$
+^\.\.Rcheck$

@@ -1,0 +1,62 @@
+Package: metaverse
+Title: Versatile Evidence Synthesis with Robust Estimation
+Version: 0.1.0
+Author: Mahmood Ahmad [aut, cre]
+Maintainer: Mahmood Ahmad <mahmood.ahmad@example.com>
+Authors@R:
+    person("Mahmood", "Ahmad", email = "mahmood.ahmad@example.com",
+           role = c("aut", "cre"))
+Description: A comprehensive framework for robust meta-analysis implementing
+    cutting-edge statistical methods including contamination models, knockoff
+    filters, spike-and-slab priors, conformal prediction, and causal inference
+    helpers. The package provides robust estimation by default, handles
+    dependent effect sizes, and includes extensive sensitivity analysis
+    workflows. Features include publication bias detection, influence
+    diagnostics, transportability analysis, and publication-quality
+    visualization tools.
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Depends:
+    R (>= 4.0.0)
+Imports:
+    stats,
+    methods,
+    graphics,
+    grDevices,
+    utils,
+    Matrix (>= 1.3-0),
+    MASS,
+    lme4 (>= 1.1-27),
+    robustbase (>= 0.93-0),
+    glmnet (>= 4.0-0),
+    boot (>= 1.3-28),
+    ggplot2 (>= 3.3.0),
+    rlang (>= 0.4.0),
+    parallel
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    covr,
+    metafor,
+    dplyr,
+    tidyr,
+    purrr,
+    scales,
+    gridExtra,
+    foreach,
+    doParallel,
+    bayesplot,
+    shiny,
+    shinydashboard,
+    DT,
+    plotly,
+    viridis,
+    cowplot
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+URL: https://github.com/mahmood726-cyber/metaverse
+BugReports: https://github.com/mahmood726-cyber/metaverse/issues
