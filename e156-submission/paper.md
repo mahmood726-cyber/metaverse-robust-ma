@@ -1,6 +1,6 @@
 Mahmood Ahmad
 Tahir Heart Institute
-author@example.com
+mahmood.ahmad2@nhs.net
 
 metaverse: Robust Meta-Analysis with Outlier-Resistant Estimation and Variable Selection
 
