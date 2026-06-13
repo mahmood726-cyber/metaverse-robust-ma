@@ -40,7 +40,7 @@ test_that("knockoff with different knockoff types works", {
                              fdr = 0.2,
                              control = list(knockoff_type = ktype,
                                             randomize = FALSE))
-    expect_s3_class(res, "selection_result", info = ktype)
+    expect_s3_class(res, "selection_result")
   }
 })
 
@@ -136,7 +136,7 @@ test_that("selection with single moderator does not crash", {
 
   for (m in c("lasso", "elastic_net", "evalues")) {
     res <- select_moderators(X, yi, vi, method = m)
-    expect_s3_class(res, "selection_result", info = m)
+    expect_s3_class(res, "selection_result")
   }
 })
 

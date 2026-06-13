@@ -379,13 +379,38 @@ spike_slab_mcmc <- function(X, y, v, control = list(), verbose = FALSE) {
   )
 }
 
+#' Single-moderator selection fallback
+#'
+#' glmnet requires a design matrix with at least two columns, so penalised
+#' methods cannot run when there is a single candidate moderator. In that case
+#' we fall back to a weighted univariate regression and select the moderator
+#' when its coefficient is significant at the supplied level.
+single_moderator_selection <- function(X, y, v, alpha = 0.05) {
+  fit <- lm(y ~ X[, 1], weights = 1 / v)
+  coefs <- summary(fit)$coefficients
+  beta <- coefs[2, 1]
+  p_value <- coefs[2, 4]
+  selected <- if (is.finite(p_value) && p_value < alpha) 1L else integer(0)
+
+  list(
+    selected = selected,
+    coefficients = if (length(selected)) beta else numeric(0),
+    selection_prob = if (is.finite(p_value)) as.numeric(p_value < alpha) else 0,
+    p_value = p_value
+  )
+}
+
 #' LASSO with stability selection
 #' @export
 lasso_selection <- function(X, y, v, alpha = 0.05, control = list(), verbose = FALSE) {
-  
+
   n <- nrow(X)
   p <- ncol(X)
-  
+
+  if (p < 2) {
+    return(single_moderator_selection(X, y, v, alpha))
+  }
+
   # Control parameters
   con <- list(
     n_bootstrap = 100,
@@ -435,7 +460,11 @@ lasso_selection <- function(X, y, v, alpha = 0.05, control = list(), verbose = F
 #' Elastic net selection
 #' @export
 elastic_net_selection <- function(X, y, v, alpha = 0.05, control = list(), verbose = FALSE) {
-  
+
+  if (ncol(X) < 2) {
+    return(single_moderator_selection(X, y, v, alpha))
+  }
+
   # Control parameters
   con <- list(
     alpha_elastic = 0.5,  # Elastic net mixing parameter
@@ -477,9 +506,13 @@ scad_selection <- function(X, y, v, control = list(), verbose = FALSE) {
   
   # SCAD penalty implementation
   # Simplified version - would use ncvreg package in practice
-  
+
   p <- ncol(X)
-  
+
+  if (p < 2) {
+    return(single_moderator_selection(X, y, v))
+  }
+
   # Initial LASSO estimate
   cv_fit <- cv.glmnet(X, y, weights = 1/v, alpha = 1)
   beta_init <- as.vector(coef(cv_fit, s = "lambda.min"))[-1]
@@ -516,9 +549,13 @@ mcp_selection <- function(X, y, v, control = list(), verbose = FALSE) {
   
   # Minimax concave penalty
   # Simplified version
-  
+
   p <- ncol(X)
-  
+
+  if (p < 2) {
+    return(single_moderator_selection(X, y, v))
+  }
+
   # Initial estimate
   cv_fit <- cv.glmnet(X, y, weights = 1/v, alpha = 1)
   beta_init <- as.vector(coef(cv_fit, s = "lambda.min"))[-1]

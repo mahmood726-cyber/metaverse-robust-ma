@@ -6,8 +6,7 @@ selection, and modern inference methods for meta-analysis.
 
 ## Overview
 
-**metaverse** provides cutting-edge statistical methods for robust meta-analysis
-in R:
+**metaverse** provides statistical methods for robust meta-analysis in R:
 
 - **Robust Estimation**: M, MM, S, and tau estimators with contamination models
   (t-mixture, slash, Box-Cox)

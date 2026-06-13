@@ -221,10 +221,18 @@ egger_test <- function(yi, vi, method = "standard") {
   } else if(method == "robust") {
     fit <- robustbase::lmrob(yi ~ sei, weights = 1/vi)
   } else {
-    # Multilevel version
-    fit <- lme4::lmer(yi ~ sei + (1|study), weights = 1/vi,
-                      data = data.frame(yi = yi, sei = sei, 
-                                      study = 1:length(yi)))
+    # Multilevel version: requires >=1 study with replicate effect sizes. When
+    # each effect is its own study (the common single-row-per-study case) a
+    # random intercept is not identifiable, so fall back to the standard
+    # weighted regression rather than letting lme4 error out.
+    study <- if (!is.null(names(yi))) names(yi) else seq_along(yi)
+    has_replicates <- length(unique(study)) < length(yi)
+    if (has_replicates) {
+      fit <- lme4::lmer(yi ~ sei + (1|study), weights = 1/vi,
+                        data = data.frame(yi = yi, sei = sei, study = study))
+    } else {
+      fit <- lm(yi ~ sei, weights = 1/vi)
+    }
   }
   
   coefs <- summary(fit)$coefficients

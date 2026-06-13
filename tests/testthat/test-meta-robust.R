@@ -18,7 +18,7 @@ test_that("meta_robust runs for all 6 methods without error", {
   methods <- c("MM", "M", "tau", "S", "ML", "REML")
   for (m in methods) {
     res <- meta_robust(data$yi, data$vi, method = m)
-    expect_s3_class(res, "meta_robust", info = paste("method =", m))
+    expect_s3_class(res, "meta_robust")
     expect_true(is.numeric(res$estimate), info = m)
     expect_true(!is.na(res$estimate), info = m)
     expect_true(res$se > 0, info = m)

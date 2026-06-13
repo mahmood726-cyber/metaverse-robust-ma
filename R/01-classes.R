@@ -4,6 +4,14 @@
 #' @importFrom methods setClass setGeneric setMethod setValidity new validObject
 #' @import Matrix
 
+# Register the S3 result classes so that classed result objects (which are
+# lists at heart) are accepted in the metaverse "list" slots. Without this,
+# new("metaverse", robust = meta_robust(...)) fails S4 validation because S4
+# does not treat an S3 "meta_robust" object as extending the basic "list".
+setOldClass(c("meta_robust", "list"))
+setOldClass(c("selection_result", "list"))
+setOldClass(c("sensitivity_result", "list"))
+
 # Main metaverse class with validation
 setClassUnion("callOrNULL", c("call", "NULL"))
 

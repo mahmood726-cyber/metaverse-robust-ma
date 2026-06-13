@@ -140,10 +140,25 @@ m_estimator <- function(yi, vi, wi, mods = NULL, control = list(), verbose = FAL
     p <- 1
   }
   
-  # Initial estimate via weighted least squares
-  W <- diag(wi)
-  beta_old <- solve(t(X) %*% W %*% X) %*% t(X) %*% W %*% yi
-  
+  # Initial estimate. A non-robust weighted-least-squares start is pulled toward
+  # extreme outliers and can leave the IRLS at a non-robust fixed point, so use
+  # a robust starting value: an explicit control$init (e.g. the S-estimate in MM
+  # estimation) when supplied and numeric, otherwise the (weighted) median for
+  # the intercept and WLS for any moderator slopes.
+  W <- beta_old <- NULL
+  if(!is.null(control$init) && is.numeric(control$init) &&
+     length(control$init) == p && all(is.finite(control$init))) {
+    beta_old <- matrix(control$init, ncol = 1)
+  } else {
+    W <- diag(wi)
+    beta_wls <- solve(t(X) %*% W %*% X) %*% t(X) %*% W %*% yi
+    beta_old <- beta_wls
+    beta_old[1] <- median(yi)  # robust intercept start
+  }
+  # Default to the initial estimate so beta_new is always defined even if the
+  # loop breaks on iteration 1 (e.g. singular reweighting matrix).
+  beta_new <- beta_old
+
   # Iteratively reweighted least squares
   for(iter in 1:control$maxiter) {
     
@@ -276,22 +291,29 @@ s_estimator <- function(yi, vi, wi, mods = NULL, control = list(), verbose = FAL
     theta_init <- median(yi)
     ri <- (yi - theta_init) / sqrt(vi)
     scale <- median(abs(ri)) * 1.4826
-    
+    # Standard error of the robust (weighted) location estimate. Without an
+    # explicit se downstream confidence intervals collapse to length zero.
+    se <- sqrt(1 / sum(wi))
+
     return(list(
       coefficients = theta_init,
       estimate = theta_init,
+      se = se,
       scale = scale,
       iterations = 1,
       converged = TRUE
     ))
   }
-  
+
   # For models with covariates, use robust regression
   rob_fit <- robustbase::lmrob(yi ~ X - 1, weights = wi)
-  
+  rob_se <- tryCatch(sqrt(diag(stats::vcov(rob_fit)))[1],
+                     error = function(e) NA_real_)
+
   list(
     coefficients = coef(rob_fit),
     estimate = coef(rob_fit)[1],
+    se = unname(rob_se),
     scale = rob_fit$scale,
     iterations = rob_fit$control$iterations,
     converged = rob_fit$converged
@@ -440,9 +462,10 @@ fit_t_mixture <- function(yi, vi, df = 4, verbose = FALSE) {
     if(abs(mu - mu_old) < 1e-6) break
   }
   
-  # Compute outlier probabilities
-  outlier_prob <- 1 - weights
-  
+  # Compute outlier probabilities. The t-mixture E-step weight can exceed 1 for
+  # points near the centre, so clamp 1 - weight into the valid [0, 1] range.
+  outlier_prob <- pmin(1, pmax(0, 1 - weights))
+
   list(
     estimate = mu,
     sigma2 = sigma2,
@@ -523,12 +546,24 @@ fit_boxcox_transform <- function(yi, vi, lambda = NULL, verbose = FALSE) {
     estimate <- (lambda * estimate_transformed + 1)^(1/lambda) - shift
   }
   
+  # Outlier probabilities from robustly standardised residuals on the
+  # transformed scale (large absolute residuals are increasingly likely to be
+  # outliers). Uses the same |z| > 1 down-weighting convention as the slash
+  # model so the three contamination models are mutually comparable.
+  loc <- median(yi_transformed)
+  sc  <- mad(yi_transformed)
+  if (!is.finite(sc) || sc <= 0) sc <- sd(yi_transformed)
+  if (!is.finite(sc) || sc <= 0) sc <- 1
+  z <- (yi_transformed - loc) / sc
+  weights <- ifelse(abs(z) < 1, 1, 1 / abs(z))
+  outlier_prob <- pmin(1, pmax(0, 1 - weights))
+
   list(
     estimate = estimate,
     lambda = lambda,
     shift = shift,
     transformed = yi_transformed,
-    outlier_prob = rep(0, length(yi))  # Placeholder
+    outlier_prob = outlier_prob
   )
 }
 
